@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --color-background: 250 247 255;
+  --color-surface: 255 255 255;
+  --color-surface-variant: 241 241 246;
+  --color-text-main: 17 17 17;
+  --color-text-muted: 95 95 107;
+  --color-border: 226 226 234;
+  --color-accent-dark: 184 66 0;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-background: 15 15 23;
+  --color-surface: 26 26 36;
+  --color-surface-variant: 38 38 47;
+  --color-text-main: 244 244 247;
+  --color-text-muted: 161 161 170;
+  --color-border: 58 58 69;
+  --color-accent-dark: 255 106 26;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  color: rgb(var(--color-text-main));
+  background: rgb(var(--color-background));
+  overflow-x: hidden;
+}
+::selection { background: #a880f9; color: white; }
+
+@layer components {
+  .card { @apply rounded-3xl border border-line bg-surface shadow-soft; }
+  .form-control { @apply min-h-11 w-full rounded-2xl border border-line bg-surface px-4 text-sm font-semibold outline-none transition placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/15; }
+
+  /* primary/secondary buttons — flat, no shadow, no gradient */
+  .dash-btn-primary {
+    @apply bg-brand text-white text-sm font-medium rounded-xl px-4 py-2 transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .dash-btn-secondary {
+    @apply border border-line text-ink text-sm font-medium rounded-xl px-4 py-2 transition hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* icon-only nav rail item — centered square target, brand-tinted when active */
+  .dash-nav-item-icon {
+    @apply flex h-12 w-12 items-center justify-center rounded-xl p-0 text-muted transition-colors hover:bg-surface-variant hover:text-ink;
+  }
+  .dash-nav-item-icon.dash-nav-item-active {
+    @apply bg-brand/10 text-brand-dark;
+  }
+}
