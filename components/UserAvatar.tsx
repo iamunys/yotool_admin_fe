@@ -7,10 +7,12 @@ export function UserAvatar({
   name,
   email,
   avatarUrl,
+  size = 36,
 }: {
   name: string | null;
   email: string;
   avatarUrl?: string | null;
+  size?: number;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const letter = (name?.trim() || email).charAt(0).toUpperCase();
@@ -20,17 +22,22 @@ export function UserAvatar({
       <Image
         src={avatarUrl}
         alt=""
-        width={36}
-        height={36}
+        width={size}
+        height={size}
         unoptimized
         onError={() => setImageFailed(true)}
-        className="h-9 w-9 shrink-0 rounded-full bg-surface-variant object-cover"
+        className="shrink-0 rounded-full bg-surface-variant object-cover"
+        style={{ width: size, height: size }}
       />
     );
   }
 
   return (
-    <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand/15 text-sm font-black text-brand-dark">
+    <span
+      aria-hidden="true"
+      className="grid shrink-0 place-items-center rounded-full bg-brand/15 font-black text-brand-dark"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
       {letter}
     </span>
   );

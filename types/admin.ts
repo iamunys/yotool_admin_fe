@@ -50,3 +50,36 @@ export function getProspectsCount(user: AdminUser, view: ProspectsView): number 
 export function getFollowupsCount(user: AdminUser, view: FollowupsView): number {
   return user.followupCounts[view];
 }
+
+export type PaginatedList<T> = {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type AdminProspectListItem = {
+  id: string;
+  name: string;
+  status: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type AdminFollowupListItem = {
+  id: string;
+  title: string;
+  dueDate: string | null;
+  createdAt: string | null;
+};
+
+export type AdminUserDetail = {
+  id: string;
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  lastActiveAt: string | null;
+};
+
+export type ProspectTab = "product" | "recruitment";

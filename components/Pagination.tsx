@@ -3,17 +3,19 @@ export function Pagination({
   totalPages,
   total,
   onPageChange,
+  itemLabel = "user",
 }: {
   page: number;
   totalPages: number;
   total: number;
   onPageChange: (page: number) => void;
+  itemLabel?: string;
 }) {
   if (total === 0) return null;
 
   return (
     <div className="mt-4 flex items-center justify-between gap-4 px-1">
-      <p className="text-xs font-medium text-muted">{total} user{total === 1 ? "" : "s"}</p>
+      <p className="text-xs font-medium text-muted">{total} {itemLabel}{total === 1 ? "" : "s"}</p>
       <div className="flex items-center gap-3">
         <button
           type="button"
