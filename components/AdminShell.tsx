@@ -10,6 +10,7 @@ const tabs = [
   { href: "/users", label: "Users", icon: PeopleIcon },
   { href: "/prospects", label: "Prospects", icon: ProspectsIcon },
   { href: "/followups", label: "Followups", icon: FollowupsIcon },
+  { href: "/reviews", label: "Reviews", icon: ReviewsIcon },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -165,6 +166,14 @@ function FollowupsIcon({ className }: IconProps) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 7.5V12l3 2" />
+    </svg>
+  );
+}
+
+function ReviewsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="m12 4 2.36 4.78 5.27.77-3.82 3.72.9 5.25L12 16l-4.71 2.52.9-5.25-3.82-3.72 5.27-.77z" />
     </svg>
   );
 }

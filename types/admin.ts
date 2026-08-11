@@ -155,3 +155,33 @@ export type AdminFollowup = {
   prospect: AdminFollowupProspect | null;
   addedBy: AdminFollowupAddedBy;
 };
+
+export const REVIEW_SORT_OPTIONS = ["mostVoted", "newest"] as const;
+
+export type AdminReviewSortBy = (typeof REVIEW_SORT_OPTIONS)[number];
+
+// Raw shape of the `user` field from GET /admin/reviews. Unlike
+// AdminFollowupAddedBy/AdminProspectAddedBy, this has no id (the
+// reviewer's id is the separate top-level `user_id`) and is null when
+// isAnonymous is true. Kept close to the wire shape; the hook derives a
+// display-friendly `authorName` from it rather than reshaping it into an
+// addedBy-like object.
+export type AdminReviewUser = {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+// Flat, cross-user GET /admin/reviews list item. Deliberately not shaped
+// like AdminFollowup/AdminProspect's `addedBy` — see AdminReviewUser.
+export type AdminReview = {
+  id: string;
+  created_at: string | null;
+  description: string | null;
+  subject: string;
+  isAnonymous: boolean;
+  user_id: string | null;
+  author: string;
+  voteCount: number;
+  user: AdminReviewUser | null;
+};
