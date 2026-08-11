@@ -67,6 +67,45 @@ export type AdminProspectListItem = {
   updatedAt: string | null;
 };
 
+export const PROSPECT_STATUSES = [
+  "new_lead",
+  "invited",
+  "plan_presented",
+  "follow_up",
+  "interested",
+  "closed",
+  "not_interested",
+  "not_now",
+] as const;
+
+export type AdminProspectType = "product" | "recruitment";
+
+export const PROSPECT_PRIORITIES = ["low", "high"] as const;
+
+export type AdminProspectPriority = (typeof PROSPECT_PRIORITIES)[number];
+
+export type AdminProspectAddedBy = {
+  id: string;
+  name: string | null;
+  email: string | null;
+};
+
+// Distinct from AdminProspectListItem: that type models the prospects
+// nested under a user in GET /admin/users/:id (no owner, no type field).
+// This models the flat, cross-user GET /admin/prospects list, which has
+// an owning user (addedBy) and an explicit prospectType per row.
+export type AdminProspect = {
+  id: string;
+  name: string;
+  status: string | null;
+  prospectType: AdminProspectType | null;
+  priority: AdminProspectPriority | null;
+  lastContactedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  addedBy: AdminProspectAddedBy;
+};
+
 export type AdminFollowupListItem = {
   id: string;
   title: string;
