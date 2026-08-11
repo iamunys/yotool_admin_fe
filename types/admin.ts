@@ -122,3 +122,36 @@ export type AdminUserDetail = {
 };
 
 export type ProspectTab = "product" | "recruitment";
+
+export const FOLLOWUP_STATUSES = ["completed", "missed", "upcoming"] as const;
+
+export type AdminFollowupStatus = (typeof FOLLOWUP_STATUSES)[number];
+
+export type AdminFollowupProspect = {
+  id: string;
+  name: string;
+  prospectType: AdminProspectType | null;
+};
+
+export type AdminFollowupAddedBy = {
+  id: string;
+  name: string | null;
+  email: string | null;
+};
+
+// Distinct from AdminFollowupListItem: that type models the follow-ups
+// nested under a user in GET /admin/users/:id (no owner, no linked
+// prospect). This models the flat, cross-user GET /admin/followups list,
+// which has an owning user (addedBy) and an optional linked prospect.
+export type AdminFollowup = {
+  id: string;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  remindBeforeMinutes: number | null;
+  completed: boolean | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  prospect: AdminFollowupProspect | null;
+  addedBy: AdminFollowupAddedBy;
+};

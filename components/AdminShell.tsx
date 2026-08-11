@@ -9,6 +9,7 @@ import { useAuth } from "@/components/AuthProvider";
 const tabs = [
   { href: "/users", label: "Users", icon: PeopleIcon },
   { href: "/prospects", label: "Prospects", icon: ProspectsIcon },
+  { href: "/followups", label: "Followups", icon: FollowupsIcon },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -155,6 +156,15 @@ function ProspectsIcon({ className }: IconProps) {
       <rect x="3.5" y="7" width="17" height="13" rx="2" />
       <path d="M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7" />
       <path d="M3.5 12.5h17" />
+    </svg>
+  );
+}
+
+function FollowupsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
     </svg>
   );
 }
