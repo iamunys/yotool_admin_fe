@@ -20,13 +20,16 @@ export default function ComposeNotificationPage() {
   const { session, signOut } = useAuth();
   const router = useRouter();
 
-  const [audienceMode, setAudienceMode] = useState<AudienceMode>("all");
+  const [audienceMode, setAudienceMode] = useState<AudienceMode>("specific");
   const [selectedUsers, setSelectedUsers] = useState<PickedUser[]>([]);
   const [message, setMessage] = useState("");
+  const [allUsersAcknowledged, setAllUsersAcknowledged] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [sendState, setSendState] = useState<SendState>({ status: "idle" });
 
-  const canSend = message.trim().length > 0 && (audienceMode === "all" || selectedUsers.length > 0);
+  const canSend =
+    message.trim().length > 0 &&
+    (audienceMode === "all" ? allUsersAcknowledged : selectedUsers.length > 0);
 
   const confirmDescription =
     audienceMode === "all"
@@ -94,8 +97,14 @@ export default function ComposeNotificationPage() {
   const resetForm = () => {
     setMessage("");
     setSelectedUsers([]);
-    setAudienceMode("all");
+    setAudienceMode("specific");
+    setAllUsersAcknowledged(false);
     setSendState({ status: "idle" });
+  };
+
+  const handleAudienceModeChange = (mode: AudienceMode) => {
+    setAudienceMode(mode);
+    setAllUsersAcknowledged(false);
   };
 
   if (sendState.status === "success") {
@@ -119,14 +128,26 @@ export default function ComposeNotificationPage() {
       <div className="card p-6">
         <h2 className="text-sm font-bold text-ink">Audience</h2>
         <div role="radiogroup" aria-label="Audience" className="mt-3 flex gap-3">
-          <AudienceModeButton mode="all" current={audienceMode} onSelect={setAudienceMode} label="All users" />
-          <AudienceModeButton mode="specific" current={audienceMode} onSelect={setAudienceMode} label="Specific users" />
+          <AudienceModeButton mode="all" current={audienceMode} onSelect={handleAudienceModeChange} label="All users" />
+          <AudienceModeButton mode="specific" current={audienceMode} onSelect={handleAudienceModeChange} label="Specific users" />
         </div>
 
         {audienceMode === "specific" && (
           <div className="mt-4">
             <AudienceUserPicker selected={selectedUsers} onChange={setSelectedUsers} />
           </div>
+        )}
+
+        {audienceMode === "all" && (
+          <label className="mt-4 flex items-start gap-2.5 rounded-2xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm font-semibold text-ink">
+            <input
+              type="checkbox"
+              checked={allUsersAcknowledged}
+              onChange={(event) => setAllUsersAcknowledged(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line text-brand focus:ring-brand/40"
+            />
+            I understand this will send to every user.
+          </label>
         )}
 
         <h2 className="mt-6 text-sm font-bold text-ink">Message</h2>
