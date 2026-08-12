@@ -196,3 +196,33 @@ export type AdminReview = {
   voteCount: number;
   user: AdminReviewUser | null;
 };
+
+export const NOTIFICATION_RULE_TYPE_KEYS = [
+  "follow_ups_today",
+  "plan_presented_reminder",
+  "stale_new_leads",
+  "inactive_onboarding",
+] as const;
+
+export type NotificationRuleTypeKey = (typeof NOTIFICATION_RULE_TYPE_KEYS)[number];
+
+// Wire shape from GET/PATCH /admin/notification-rules is snake_case
+// (type_key, message_template, threshold_count, threshold_days, ...) —
+// admin-notifications.service.ts returns the Supabase row as-is with no
+// camelCase mapping, same gotcha as GET /admin/users/:id/activity (see
+// AdminActivityListItem above). The hook maps it to this shape.
+export type AdminNotificationRule = {
+  typeKey: NotificationRuleTypeKey;
+  enabled: boolean;
+  messageTemplate: string;
+  thresholdCount: number | null;
+  thresholdDays: number | null;
+  updatedAt: string | null;
+};
+
+export type NotificationAudience = "all" | string[];
+
+export type SendNotificationResult = {
+  recipients: number;
+  sent: number;
+};

@@ -11,7 +11,18 @@ const tabs = [
   { href: "/prospects", label: "Prospects", icon: ProspectsIcon },
   { href: "/followups", label: "Followups", icon: FollowupsIcon },
   { href: "/reviews", label: "Reviews", icon: ReviewsIcon },
+  { href: "/notifications", label: "Notifications", icon: NotificationsIcon },
+  { href: "/notifications/compose", label: "Compose", icon: ComposeIcon },
 ];
+
+// Picks the most specific tab whose href matches the current path, so a
+// nested route like /notifications/compose activates only the Compose tab
+// and not both it and the parent Notifications tab.
+function findActiveTab(pathname: string) {
+  const matches = tabs.filter((tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`));
+  if (matches.length === 0) return undefined;
+  return matches.reduce((best, tab) => (tab.href.length > best.href.length ? tab : best));
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { session, isLoading, user, signOut } = useAuth();
@@ -26,12 +37,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (isLoading || !session) return <ShellLoading />;
 
-  const activeTab = tabs.find((tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`));
+  const activeTab = findActiveTab(pathname);
   const pageTitle = activeTab?.label ?? "Admin";
 
   return (
     <div className="flex h-screen overflow-hidden bg-canvas">
-      <Sidebar pathname={pathname} userEmail={user?.email ?? null} onSignOut={signOut} />
+      <Sidebar activeHref={activeTab?.href} userEmail={user?.email ?? null} onSignOut={signOut} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex min-h-16 shrink-0 items-center border-b border-line bg-surface px-4 sm:px-6">
           <h1 className="truncate text-lg font-semibold text-ink">{pageTitle}</h1>
@@ -45,11 +56,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 function Sidebar({
-  pathname,
+  activeHref,
   userEmail,
   onSignOut,
 }: {
-  pathname: string;
+  activeHref: string | undefined;
   userEmail: string | null;
   onSignOut: () => Promise<void>;
 }) {
@@ -76,7 +87,7 @@ function Sidebar({
       <nav aria-label="Admin navigation" className="flex flex-1 flex-col items-center gap-4 py-5">
         <div className="flex flex-col items-center gap-4">
           {tabs.map((tab) => {
-            const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+            const isActive = tab.href === activeHref;
             const Icon = tab.icon;
             return (
               <Link
@@ -174,6 +185,24 @@ function ReviewsIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <path d="m12 4 2.36 4.78 5.27.77-3.82 3.72.9 5.25L12 16l-4.71 2.52.9-5.25-3.82-3.72 5.27-.77z" />
+    </svg>
+  );
+}
+
+function NotificationsIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M12 3.5c-2.9 0-5.25 2.24-5.25 5.25v3.1c0 .58-.22 1.14-.62 1.56L5 14.75V16h14v-1.25l-1.13-1.34c-.4-.42-.62-.98-.62-1.56v-3.1c0-3.01-2.35-5.25-5.25-5.25Z" />
+      <path d="M9.5 18.5a2.5 2.5 0 0 0 5 0" />
+    </svg>
+  );
+}
+
+function ComposeIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M20.5 3.5 3 10.5l6.5 2.5L12 20.5l3-6 5.5-11Z" />
+      <path d="M9.5 13 20.5 3.5" />
     </svg>
   );
 }
