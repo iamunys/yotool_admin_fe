@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { ActivityCard, ActivityCardSkeleton } from "@/components/ActivityCard";
 import { FollowupsCard, FollowupsCardSkeleton } from "@/components/FollowupsCard";
 import { ProspectsCard, ProspectsCardSkeleton } from "@/components/ProspectsCard";
 import { UserDetailHeader, UserDetailHeaderSkeleton } from "@/components/UserDetailHeader";
+import { useAdminUserActivity } from "@/hooks/useAdminUserActivity";
 import { useAdminUserDetail } from "@/hooks/useAdminUserDetail";
 import type { ProspectTab } from "@/types/admin";
 
@@ -19,6 +21,7 @@ export default function UserDetailPage() {
   const [productPage, setProductPage] = useState(1);
   const [recruitmentPage, setRecruitmentPage] = useState(1);
   const [followupsPage, setFollowupsPage] = useState(1);
+  const [activityPage, setActivityPage] = useState(1);
 
   const { state, retry } = useAdminUserDetail({
     userId,
@@ -28,6 +31,12 @@ export default function UserDetailPage() {
     followupsPage,
     prospectsLimit: PAGE_SIZE,
     followupsLimit: PAGE_SIZE,
+  });
+
+  const { state: activityState, retry: retryActivity } = useAdminUserActivity({
+    userId,
+    page: activityPage,
+    limit: PAGE_SIZE,
   });
 
   const handleTabChange = (tab: ProspectTab) => setProspectsTab(tab);
@@ -48,6 +57,7 @@ export default function UserDetailPage() {
           <UserDetailHeaderSkeleton />
           <ProspectsCardSkeleton />
           <FollowupsCardSkeleton />
+          <ActivityCardSkeleton />
         </div>
       )}
 
@@ -78,6 +88,19 @@ export default function UserDetailPage() {
             onPageChange={handleProspectsPageChange}
           />
           <FollowupsCard list={state.followups} onPageChange={setFollowupsPage} />
+
+          {activityState.status === "loading" && <ActivityCardSkeleton />}
+          {activityState.status === "error" && (
+            <div className="card px-6 py-16 text-center">
+              <p role="alert" className="text-sm font-semibold text-ink">{activityState.message}</p>
+              <button type="button" onClick={retryActivity} className="dash-btn-secondary mt-4 min-h-9">
+                Try again
+              </button>
+            </div>
+          )}
+          {activityState.status === "ready" && (
+            <ActivityCard list={activityState} onPageChange={setActivityPage} />
+          )}
         </div>
       )}
     </section>

@@ -113,6 +113,17 @@ export type AdminFollowupListItem = {
   createdAt: string | null;
 };
 
+// Wire shape from GET /admin/users/:id/activity is snake_case
+// (event_type, entity_id, metadata, created_at) — unlike the rest of the
+// admin API, admin.service.ts's getUserActivity() returns the Supabase
+// row as-is with no camelCase mapping. The hook maps it to this shape.
+export type AdminActivityListItem = {
+  eventType: string;
+  entityId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string | null;
+};
+
 export type AdminUserDetail = {
   id: string;
   name: string | null;
