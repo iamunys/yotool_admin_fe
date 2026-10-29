@@ -7,7 +7,7 @@ import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { getApiBaseUrl } from "@/lib/apiBaseUrl";
 
 type Group = "both" | "followups_only" | "reorders_only";
-type Template = { id: string; group_key: Group; body: string; enabled: boolean };
+type Template = { id: string; group_key: Group; title: string; body: string; enabled: boolean };
 type Digest = { enabled: boolean; deliveryTime: string; templates: Template[] };
 const groups: { key: Group; title: string; hint: string }[] = [
   { key: "both", title: "Follow-ups and reorders", hint: "{followups}, {reorders}, optional {overdue}" },
@@ -66,34 +66,42 @@ export default function NotificationsPage() {
     {digest && <>
       <div className="card p-5"><div className="flex flex-wrap items-center gap-4 text-sm"><span><strong>Delivery:</strong> {digest.deliveryTime}</span><span><strong>Status:</strong> {digest.enabled ? "Enabled" : "Disabled"}</span></div><p className="mt-2 text-xs text-muted">Timing and recipient rules are fixed. Template changes affect future digests only.</p></div>
       {groups.map((group) => <div key={group.key} className="card p-5">
-        <h2 className="text-base font-bold text-ink">{group.title}</h2><p className="mt-1 text-xs text-muted">Placeholders: {group.hint} · Maximum 180 characters</p>
+        <h2 className="text-base font-bold text-ink">{group.title}</h2><p className="mt-1 text-xs text-muted">Placeholders in title or body: {group.hint} · Title up to 60 characters, body up to 180</p>
         <div className="mt-4 space-y-4">{digest.templates.filter((item) => item.group_key === group.key).map((item) =>
-          <TemplateEditor key={item.id} template={item} busy={busy} onSave={(body) => save(`/${item.id}`, "PATCH", { body })} onToggle={(enabled) => save(`/${item.id}`, "PATCH", { enabled })} />)}</div>
-        <NewTemplate group={group.key} busy={busy} onAdd={(body) => save("", "POST", { group: group.key, body })} />
+          <TemplateEditor key={item.id} template={item} busy={busy} onSave={(title, body) => save(`/${item.id}`, "PATCH", { title, body })} onToggle={(enabled) => save(`/${item.id}`, "PATCH", { enabled })} />)}</div>
+        <NewTemplate group={group.key} busy={busy} onAdd={(title, body) => save("", "POST", { group: group.key, title, body })} />
       </div>)}
     </>}
   </section>;
 }
 
-function TemplateEditor({ template, busy, onSave, onToggle }: { template: Template; busy: boolean; onSave: (body: string) => Promise<void>; onToggle: (enabled: boolean) => Promise<void> }) {
+function TemplateEditor({ template, busy, onSave, onToggle }: { template: Template; busy: boolean; onSave: (title: string, body: string) => Promise<void>; onToggle: (enabled: boolean) => Promise<void> }) {
+  const [title, setTitle] = useState(template.title);
   const [body, setBody] = useState(template.body);
   const [error, setError] = useState("");
   return <div className="rounded-2xl border border-line p-4">
-    <div className="flex items-center justify-between gap-3"><label className="text-xs font-semibold text-muted" htmlFor={`digest-${template.id}`}>Message</label><ToggleSwitch checked={template.enabled} disabled={busy} label={`Enable template ${template.id}`} onChange={(enabled) => void onToggle(enabled).catch((cause) => setError(String(cause)))} /></div>
+    <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold text-muted">Template</span><ToggleSwitch checked={template.enabled} disabled={busy} label={`Enable template ${template.id}`} onChange={(enabled) => void onToggle(enabled).catch((cause) => setError(String(cause)))} /></div>
+    <label className="mt-2 block text-xs font-semibold text-muted" htmlFor={`digest-title-${template.id}`}>Title</label>
+    <input id={`digest-title-${template.id}`} maxLength={60} value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink" />
+    <label className="mt-2 block text-xs font-semibold text-muted" htmlFor={`digest-${template.id}`}>Body</label>
     <textarea id={`digest-${template.id}`} rows={2} maxLength={180} value={body} onChange={(event) => setBody(event.target.value)} className="mt-2 w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink" />
-    <p className="mt-2 text-xs text-muted">Preview (3 follow-ups, 2 reorders, 1 overdue): <span className="text-ink">{preview(body)}</span></p>
-    <div className="mt-3 flex items-center justify-between"><span className="text-xs text-muted">{template.enabled ? "Enabled" : "Disabled"}</span><button className="dash-btn-secondary min-h-8 px-3 text-xs" disabled={busy || body === template.body} onClick={() => void onSave(body).then(() => setError("")).catch((cause) => setError(String(cause)))}>Save changes</button></div>
+    <div className="mt-2 rounded-xl bg-surface-variant p-3 text-sm"><p className="text-xs text-muted">Preview · 3 follow-ups, 2 reorders, 1 overdue</p><p className="mt-1 font-bold text-ink">{preview(title)}</p><p className="mt-1 text-ink">{preview(body)}</p></div>
+    <div className="mt-3 flex items-center justify-between"><span className="text-xs text-muted">{template.enabled ? "Enabled" : "Disabled"}</span><button className="dash-btn-secondary min-h-8 px-3 text-xs" disabled={busy || (body === template.body && title === template.title)} onClick={() => void onSave(title, body).then(() => setError("")).catch((cause) => setError(String(cause)))}>Save changes</button></div>
     {error && <p role="alert" className="mt-2 text-xs text-accent">{error}</p>}
   </div>;
 }
 
-function NewTemplate({ group, busy, onAdd }: { group: Group; busy: boolean; onAdd: (body: string) => Promise<void> }) {
+function NewTemplate({ group, busy, onAdd }: { group: Group; busy: boolean; onAdd: (title: string, body: string) => Promise<void> }) {
+  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
-  return <div className="mt-5 border-t border-line pt-4"><label className="text-xs font-semibold text-muted" htmlFor={`new-${group}`}>Add template</label>
+  return <div className="mt-5 border-t border-line pt-4"><h3 className="text-xs font-semibold text-muted">Add template</h3>
+    <label className="mt-2 block text-xs font-semibold text-muted" htmlFor={`new-title-${group}`}>Title</label>
+    <input id={`new-title-${group}`} maxLength={60} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Short Malayalam title…" className="mt-1 w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink" />
+    <label className="mt-2 block text-xs font-semibold text-muted" htmlFor={`new-${group}`}>Body</label>
     <textarea id={`new-${group}`} rows={2} maxLength={180} value={body} onChange={(event) => setBody(event.target.value)} placeholder="Write a Malayalam notification…" className="mt-2 w-full rounded-xl border border-line bg-surface p-3 text-sm text-ink" />
-    {body && <p className="mt-1 text-xs text-muted">Preview: <span className="text-ink">{preview(body)}</span></p>}
-    <button className="dash-btn-secondary mt-2 min-h-8 px-3 text-xs" disabled={busy || !body.trim()} onClick={() => void onAdd(body).then(() => { setBody(""); setError(""); }).catch((cause) => setError(String(cause)))}>Add template</button>
+    {(title || body) && <div className="mt-2 rounded-xl bg-surface-variant p-3 text-sm"><p className="text-xs text-muted">Preview · 3 follow-ups, 2 reorders, 1 overdue</p><p className="mt-1 font-bold text-ink">{preview(title)}</p><p className="mt-1 text-ink">{preview(body)}</p></div>}
+    <button className="dash-btn-secondary mt-2 min-h-8 px-3 text-xs" disabled={busy || !title.trim() || !body.trim()} onClick={() => void onAdd(title, body).then(() => { setTitle(""); setBody(""); setError(""); }).catch((cause) => setError(String(cause)))}>Add template</button>
     {error && <p role="alert" className="mt-2 text-xs text-accent">{error}</p>}
   </div>;
 }
