@@ -9,11 +9,12 @@ import { getApiBaseUrl } from "@/lib/apiBaseUrl";
 import type { SendNotificationResult } from "@/types/admin";
 
 type AudienceMode = "all" | "specific";
+type Delivery = "routine" | "urgent_service" | "urgent_security" | "urgent_operation";
 
 type SendState =
   | { status: "idle" }
   | { status: "sending" }
-  | { status: "success"; result: SendNotificationResult }
+  | { status: "success"; result: SendNotificationResult; delivery: Delivery }
   | { status: "error"; message: string };
 
 export default function ComposeNotificationPage() {
@@ -23,6 +24,7 @@ export default function ComposeNotificationPage() {
   const [audienceMode, setAudienceMode] = useState<AudienceMode>("specific");
   const [selectedUsers, setSelectedUsers] = useState<PickedUser[]>([]);
   const [message, setMessage] = useState("");
+  const [delivery, setDelivery] = useState<Delivery>("routine");
   const [allUsersAcknowledged, setAllUsersAcknowledged] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [sendState, setSendState] = useState<SendState>({ status: "idle" });
@@ -33,8 +35,8 @@ export default function ComposeNotificationPage() {
 
   const confirmDescription =
     audienceMode === "all"
-      ? "Send to all users? This is immediate and can't be undone."
-      : `Send to ${selectedUsers.length} selected user${selectedUsers.length === 1 ? "" : "s"}? This is immediate and can't be undone.`;
+      ? `Send ${delivery === "routine" ? "an inbox announcement" : "an urgent push and inbox announcement"} to all users? This can't be undone.`
+      : `Send ${delivery === "routine" ? "an inbox announcement" : "an urgent push and inbox announcement"} to ${selectedUsers.length} selected user${selectedUsers.length === 1 ? "" : "s"}? This can't be undone.`;
 
   const handleSend = async () => {
     if (!session?.access_token) return;
@@ -55,6 +57,7 @@ export default function ComposeNotificationPage() {
         body: JSON.stringify({
           audience: audienceMode === "all" ? "all" : selectedUsers.map((user) => user.id),
           message: message.trim(),
+          delivery,
         }),
       });
 
@@ -79,6 +82,7 @@ export default function ComposeNotificationPage() {
       const body = await response.json();
       setSendState({
         status: "success",
+        delivery,
         result: {
           recipients: typeof body?.recipients === "number" ? body.recipients : 0,
           sent: typeof body?.sent === "number" ? body.sent : 0,
@@ -96,6 +100,7 @@ export default function ComposeNotificationPage() {
 
   const resetForm = () => {
     setMessage("");
+    setDelivery("routine");
     setSelectedUsers([]);
     setAudienceMode("specific");
     setAllUsersAcknowledged(false);
@@ -113,7 +118,9 @@ export default function ComposeNotificationPage() {
         <div className="card p-8 text-center">
           <h2 className="text-base font-bold text-ink">Notification sent</h2>
           <p className="mt-2 text-sm font-medium text-muted">
-            Delivered to {sendState.result.sent} of {sendState.result.recipients} eligible recipients.
+            {sendState.delivery === "routine"
+              ? `Saved to the inbox for ${sendState.result.recipients} recipients.`
+              : `Pushed to ${sendState.result.sent} of ${sendState.result.recipients} recipients and saved to their inboxes.`}
           </p>
           <button type="button" onClick={resetForm} className="dash-btn-primary mt-6 min-h-10">
             Send another
@@ -151,6 +158,13 @@ export default function ComposeNotificationPage() {
         )}
 
         <h2 className="mt-6 text-sm font-bold text-ink">Message</h2>
+        <label htmlFor="compose-delivery" className="mt-4 block text-sm font-bold text-ink">Delivery</label>
+        <select id="compose-delivery" value={delivery} onChange={(event) => setDelivery(event.target.value as Delivery)} className="mt-2 min-h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink">
+          <option value="routine">Routine — inbox only</option>
+          <option value="urgent_service">Urgent service — push and inbox</option>
+          <option value="urgent_security">Urgent security — push and inbox</option>
+          <option value="urgent_operation">Urgent operation — push and inbox</option>
+        </select>
         <label htmlFor="compose-message" className="sr-only">Notification message</label>
         <textarea
           id="compose-message"
